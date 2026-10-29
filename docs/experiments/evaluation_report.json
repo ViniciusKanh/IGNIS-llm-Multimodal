@@ -1,0 +1,38 @@
+{
+  "adapter": "ignis-image-lora-v1/final",
+  "adapter_sha256": "f1a2811fbc685bb3059fb43c43c32d44d6ffab51fc5d492e7ff80ec4825f77e5",
+  "base_revision": "451f4fe16113bff5a5d2269ed5ad43b0592e9a14",
+  "pairs": [
+    {
+      "prompt": "A detailed oil painting of a quiet garden, soft morning light",
+      "seed": 42,
+      "sample": "samples/pair-1.png"
+    },
+    {
+      "prompt": "A detailed oil painting of a quiet garden, soft morning light",
+      "seed": 2026,
+      "sample": "samples/pair-2.png"
+    },
+    {
+      "prompt": "A watercolor landscape with mountains and a lake",
+      "seed": 42,
+      "sample": "samples/pair-3.png"
+    },
+    {
+      "prompt": "A watercolor landscape with mountains and a lake",
+      "seed": 2026,
+      "sample": "samples/pair-4.png"
+    },
+    {
+      "prompt": "A still life painting of flowers in a ceramic vase",
+      "seed": 42,
+      "sample": "samples/pair-5.png"
+    },
+    {
+      "prompt": "A still life painting of flowers in a ceramic vase",
+      "seed": 2026,
+      "sample": "samples/pair-6.png"
+    }
+  ],
+  "note": "Comparação visual pareada. FID/CLIP não calculados; não inferir qualidade apenas pela loss."
+}

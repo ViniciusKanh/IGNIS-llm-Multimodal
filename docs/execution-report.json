@@ -1,166 +1,65 @@
 {
   "project": "IGNIS Multimodal",
-  "created_at": "2026-10-29T03:53:33.353204+00:00",
-  "prepared_at": "C:\\Users\\Vinicius Santos\\Documents\\Codex\\2026-10-29\\skill-creator-c-users-vinicius-santos\\Ignis-Multimodal",
-  "requested_installation": "C:/dev/Ignis-Multimodal",
-  "installation_performed": false,
-  "skill_installed_in_requested_location": false,
-  "skill_created_and_official_validator_passed": true,
-  "implementation": [
-    "FastAPI backend",
-    "React/TypeScript/Tailwind frontend with four modules",
-    "SmolVLM2 and optional Qwen local loaders",
-    "SD1.5 text-to-image, image-to-image and four-channel inpainting",
-    "Core rule-based routing and vision-generation composition",
-    "LoRA UNet training with cached latents, resume, validation and checkpoints",
-    "Paired base-LoRA evaluation",
-    "PowerShell bootstrap, downloads, training, evaluation, startup, status and installer"
-  ],
-  "models_downloaded": [
-    {
-      "key": "smolvlm",
-      "repo": "HuggingFaceTB/SmolVLM2-500M-Video-Instruct",
-      "revision": "7b375e1b73b11138ff12fe22c8f2822d8fe03467",
-      "bytes": 2034856030,
-      "status": "installed"
-    },
-    {
-      "key": "sd15",
-      "repo": "stable-diffusion-v1-5/stable-diffusion-v1-5",
-      "revision": "451f4fe16113bff5a5d2269ed5ad43b0592e9a14",
-      "bytes": 2742232091,
-      "status": "installed"
-    },
-    {
-      "key": "qwen",
-      "repo": "Qwen/Qwen3-VL-2B-Instruct",
-      "revision": "89644892e4d85e24eaac8bacfd4f463576704203",
-      "bytes": 4266647442,
-      "status": "installed"
-    }
-  ],
-  "dataset_images_downloaded": 0,
-  "optimizer_updates_executed": 0,
-  "inference_with_real_weights_tested": true,
-  "frontend_production_build_tested": false,
-  "training_metrics": null,
-  "generated_images": 1,
-  "verified": {
-    "python_compilation": true,
-    "powershell_syntax": true,
-    "tsx_syntax_esbuild": true,
-    "skill_validator": true,
-    "pytest": {
-      "passed": 27,
-      "skipped": 11,
-      "failures": 0,
-      "errors": 0
-    }
-  },
+  "verified_date": "2026-10-29",
+  "evidence_scope": "Treinamento local confirmado por relatórios e pesos; Space demonstrado na gravação fornecida pelo autor.",
   "hardware": {
-    "gpu": "NVIDIA GeForce RTX 4050 Laptop GPU",
-    "total_vram_mib": 6141,
-    "free_vram_mib_initial": 5923,
-    "python": "3.13.13",
-    "available_torch": "2.12.1+cpu",
-    "cuda_available_to_torch": false
+    "gpu": "NVIDIA RTX 4050 Laptop",
+    "vram_gb": 6,
+    "ram_gb": 32,
+    "torch": "2.11.0+cu128",
+    "torchvision": "0.26.0+cu128",
+    "cuda": true
   },
-  "blockers": [
-    "A API do museu retorna HTTP 403; corrigido com fonte alternativa licenciada no HF",
-    "Esta sessão não grava em C:/dev; aplicar atualizações pelo PowerShell do usuário",
-    "O terminal desta sessão não resolve fontes externas para coletar o dataset",
-    "Adaptador treinado e avaliação ainda não confirmados",
-    "Testes HTTP ignorados por restrição de loopback da sessão"
-  ],
-  "attempts": {
-    "bootstrap": "logs/bootstrap-attempt.log",
-    "downloads": "logs/download-attempt.log",
-    "dataset": "logs/dataset-attempt.log",
-    "training": "logs/training-attempt.log",
-    "evaluation": "logs/evaluation-attempt.log",
-    "frontend_install": "logs/frontend-install-attempt.log"
+  "training": {
+    "status": "completed",
+    "optimizer_steps": 550,
+    "resolution": 512,
+    "rank": 8,
+    "train_images": 82,
+    "validation_images": 14,
+    "best_step": 300,
+    "initial_validation_loss": 0.19390892872719892,
+    "best_validation_loss": 0.19316272154849554,
+    "final_validation_loss": 0.19317844051069447,
+    "elapsed_seconds": 842.06,
+    "stop_reason": "early_stopping_validation",
+    "report": "docs/experiments/training_report.json"
   },
-  "sources": [
-    "https://huggingface.co/HuggingFaceTB/SmolVLM2-500M-Video-Instruct",
-    "https://huggingface.co/Qwen/Qwen3-VL-2B-Instruct",
-    "https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5",
-    "https://huggingface.co/docs/diffusers/training/lora",
-    "https://api.artic.edu/docs/"
-  ],
-  "publication_preparation": {
-    "model_id": "ViniciusKhan/ignis-image-lora-v1",
-    "space_id": "ViniciusKhan/IGNIS-Image-Lab",
-    "model_card": "huggingface/model/README.md",
-    "space": "huggingface/space",
-    "published": false,
-    "space_runtime_tested": false,
-    "reason": "Sem adaptador treinado validado na cópia de trabalho; nenhuma criação ou atualização remota executada.",
-    "completion_command": "scripts/complete-publication.ps1",
-    "ready_to_upload": false,
-    "remaining": [
-      "Executar o coletor atualizado com fonte alternativa",
-      "Treinar o adaptador",
-      "Avaliar os pesos finais",
-      "Gerar os pacotes de publicação"
+  "evaluation": {
+    "paired_samples": 6,
+    "seeds": [
+      42,
+      2026
+    ],
+    "report": "docs/experiments/evaluation_report.json",
+    "fid_computed": false,
+    "clipscore_computed": false
+  },
+  "publication": {
+    "model": "https://huggingface.co/ViniciusKhan/ignis-image-lora-v1",
+    "model_documentation_commit": "c388e6c598ee160b79af722f2ea87d904ce8b684",
+    "weights_sha256": "f1a2811fbc685bb3059fb43c43c32d44d6ffab51fc5d492e7ff80ec4825f77e5",
+    "space": "https://huggingface.co/spaces/ViniciusKhan/IGNIS-Image-Lab",
+    "space_evidence": "docs/media/manifest.json"
+  },
+  "checks": {
+    "pytest_passed": 29,
+    "pytest_skipped": 11,
+    "failures": 0,
+    "python_examples_syntax": true,
+    "readme_local_links": true,
+    "gif_frames_decoded": true,
+    "local_cuda_image_runtime": [
+      "text-to-image",
+      "comparison",
+      "image-to-image",
+      "inpainting"
     ]
   },
-  "model_verification_location": "C:/dev/Ignis-Multimodal/models",
-  "inference_test": {
-    "base_model": "stable-diffusion-v1-5/stable-diffusion-v1-5",
-    "variant": "fp16",
-    "width": 256,
-    "height": 256,
-    "steps": 5,
-    "seed": 42,
-    "cuda": true,
-    "torch": "2.11.0+cu128",
-    "seconds": 5.2,
-    "blocked": false,
-    "purpose": "Teste funcional de inferencia da base, sem treinamento ou avaliacao do adaptador.",
-    "scope": "Somente Stable Diffusion 1.5 base. SmolVLM2 e Qwen ainda requerem Torchvision; LoRA ainda não treinado."
-  },
-  "deployed_python": {
-    "torch": "2.11.0+cu128",
-    "cuda": true,
-    "torchvision_installed": true,
-    "frontend_dist_exists": true,
-    "torchvision_version": "0.26.0+cu128 (confirmed in user log)"
-  },
-  "generated_images_scope": "Teste funcional da base, não resultado do adaptador.",
-  "dataset_fallback": {
-    "primary": "Art Institute of Chicago",
-    "observed_error": "HTTP 403 reported by user",
-    "fallback": "poloclub/diffusiondb",
-    "license": "cc0-1.0",
-    "synthetic": true,
-    "download_scope": "images/part-000001.zip, approximately 633 MB; select up to 96 unique prompts",
-    "source_parser_and_http_fallback_tested": true,
-    "download_in_current_session": false
-  },
-  "space_upgrade": {
-    "features": [
-      "Estudio com presets e parametros",
-      "Comparacao com slider",
-      "Edicao image-to-image e inpainting",
-      "Historico por sessao",
-      "Receitas PNG/JSON/ZIP e importacao",
-      "Documentacao e seis comparacoes reais"
-    ],
-    "target_hardware": "zero-a10g",
-    "publication_completed": false,
-    "runtime_local_cuda_tests": {
-      "generation": true,
-      "comparison": true,
-      "image_to_image": true,
-      "inpainting": true
-    },
-    "ui_runtime_tested": false,
-    "zero_gpu_runtime_tested": false,
-    "blockers": [
-      "DNS do terminal da sessao impediu acesso a API Hugging Face",
-      "Automacao do navegador encerrada: nao foi possivel determinar a URL com seguranca no Windows",
-      "Construcao local Gradio bloqueada pela restricao de loopback do ambiente"
-    ],
-    "deployment_command": "scripts/deploy-space.ps1"
-  }
+  "limits": [
+    "Os testes HTTP ficam desativados por padrão; habilite IGNIS_TEST_HTTP em ambiente com loopback.",
+    "Não há benchmark de qualidade nem comprovação de superioridade geral.",
+    "A gravação mostra o Space; não é um teste integral dos módulos locais.",
+    "As verificações atuais não executaram novamente treinamento ou downloads."
+  ]
 }

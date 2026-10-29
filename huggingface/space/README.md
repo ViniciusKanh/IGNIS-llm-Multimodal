@@ -2,7 +2,7 @@
 title: IGNIS Image Lab
 emoji: 🔬
 colorFrom: blue
-colorTo: cyan
+colorTo: indigo
 sdk: gradio
 sdk_version: 5.49.1
 python_version: "3.10"

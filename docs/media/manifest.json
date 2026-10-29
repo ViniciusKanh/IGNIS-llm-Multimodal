@@ -1,0 +1,36 @@
+{
+  "source": "Gravação do usuário: 2026-10-29 10-57-08.mp4",
+  "source_duration_seconds": 54.96666666666667,
+  "crop_xyxy": [
+    315,
+    88,
+    955,
+    685
+  ],
+  "clips": [
+    {
+      "file": "studio.gif",
+      "source_start_seconds": 0,
+      "source_end_seconds": 23,
+      "sampling_fps": 3,
+      "playback_speed": 1.5,
+      "bytes": 4497013
+    },
+    {
+      "file": "comparacao.gif",
+      "source_start_seconds": 26,
+      "source_end_seconds": 42,
+      "sampling_fps": 4,
+      "playback_speed": 1,
+      "bytes": 2421125
+    },
+    {
+      "file": "edicao-historico.gif",
+      "source_start_seconds": 43,
+      "source_end_seconds": 54.5,
+      "sampling_fps": 3,
+      "playback_speed": 1,
+      "bytes": 1908087
+    }
+  ]
+}

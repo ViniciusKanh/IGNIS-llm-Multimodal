@@ -40,3 +40,32 @@ def test_publication_requires_existing_model_release(tmp_path):
     from scripts.publish_space import prepare_space
     with pytest.raises(RuntimeError, match="Pacote publicado"):
         prepare_space(tmp_path, tmp_path / "space")
+
+
+@pytest.mark.parametrize("exists", [True, False])
+def test_publication_reuses_existing_space_before_creating(monkeypatch, tmp_path, exists):
+    from types import SimpleNamespace
+    from unittest.mock import Mock
+
+    import huggingface_hub
+    from huggingface_hub.utils import HfHubHTTPError
+    from requests import Response
+    from scripts.publish_space import publish
+
+    api = Mock()
+    api.whoami.return_value = {"name": "ViniciusKhan"}
+    if not exists:
+        response = Response()
+        response.status_code = 404
+        api.space_info.side_effect = HfHubHTTPError("Space inexistente", response=response)
+    api.get_space_runtime.return_value = SimpleNamespace(
+        hardware="zero-a10g", requested_hardware="zero-a10g", stage="BUILDING")
+    api.upload_folder.return_value = SimpleNamespace(oid="commit-de-teste")
+    monkeypatch.setattr(huggingface_hub, "HfApi", lambda: api)
+    monkeypatch.setenv("HF_HOME", str(tmp_path))
+
+    publish(tmp_path, tmp_path, "ViniciusKhan/IGNIS-Image-Lab", {"model_revision": "revisao-de-teste"})
+
+    assert api.create_repo.call_count == (0 if exists else 1)
+    api.request_space_hardware.assert_not_called()
+    api.upload_folder.assert_called_once()

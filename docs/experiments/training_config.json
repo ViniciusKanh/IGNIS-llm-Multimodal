@@ -1,0 +1,17 @@
+{
+  "name": "ignis-image-lora-v1",
+  "rank": 8,
+  "resolution": 512,
+  "batch_size": 1,
+  "gradient_accumulation": 4,
+  "learning_rate": 0.0001,
+  "max_steps": 800,
+  "warmup_steps": 50,
+  "checkpoint_every": 50,
+  "validation_every": 50,
+  "patience": 5,
+  "min_steps": 300,
+  "seed": 42,
+  "dataset_fingerprint": "90c1f9c61a6dfa9716dd866880f90b9973131bced5e87872f37bfd30bdf6f999",
+  "base_revision": "451f4fe16113bff5a5d2269ed5ad43b0592e9a14"
+}

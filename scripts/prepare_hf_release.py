@@ -44,34 +44,7 @@ def collect_evidence(adapter):
     return folder, report, config, dataset, base, evaluation_folder, evaluation
 
 
-def render_card(model_id, report, config, dataset):
-    card = (ROOT / "huggingface/model/README.md").read_text(encoding="utf-8")
-    card = card.replace("ViniciusKhan/ignis-image-lora-v1", model_id)
-    card = card.replace("**Rascunho de model card. Não há pesos treinados ou avaliação confirmados nesta versão do documento.**",
-                        "**Versão experimental com adaptador treinado e evidências de execução anexas.**")
-    card = card.replace("Rascunho anterior à publicação dos pesos", "Versão experimental preparada para publicação")
-    start = card.index("O coletor implementado consulta")
-    end = card.index("As legendas são construídas", start)
-    card = card[:start] + (f"O manifesto desta execução registra **{len(dataset['train'])} imagens de treino** e "
-                         f"**{len(dataset['validation'])} de validação**. Origem: `{json.dumps(dataset.get('source'), ensure_ascii=False)}`. "
-                         f"Fingerprint do dataset: `{dataset['fingerprint']}`. A proveniência individual acompanha a versão em `data_provenance.json`.\n\n") + card[end:]
-    start = card.index("## Configuração inicial planejada")
-    end = card.index("## Resultados e avaliação", start)
-    card = card[:start] + "## Configuração efetivamente executada\n\n```json\n" + json.dumps(config, ensure_ascii=False, indent=2) + "\n```\n\n" + card[end:]
-    start = card.index("**Resultados ainda não disponíveis neste rascunho.")
-    end = card.index("## Como carregar os pesos", start)
-    results = (f"Execução concluída com **{report['step']} atualizações do otimizador**. Motivo de parada: `{report.get('stop_reason')}`.\n\n"
-               f"Loss inicial de validação: `{report.get('initial_validation_loss')}`. Melhor loss de validação observada durante o treinamento: "
-               f"`{report.get('best_validation_loss')}`. A melhor loss pode corresponder a um checkpoint anterior ao adaptador final publicado.\n\n"
-               "As imagens em `samples/` comparam base e adaptador final com prompts e sementes idênticos. "
-               "Consulte `evaluation_report.json` para os pares e `training_report.json` para a execução. "
-               "Não foram calculados FID ou CLIP score. A comparação não demonstra superioridade geral sobre a base.\n\n"
-               "![Comparação base e IGNIS, mesma seed](samples/pair-1.png)\n\n")
-    card = card[:start] + results + card[end:]
-    card = card.replace("A versão final deve conter", "Esta versão contém")
-    card = card.replace("O código abaixo pressupõe que o repositório já tenha sido publicado com o adaptador e que exista GPU CUDA compatível:",
-                        "Após o envio desta versão ao Hub, carregue a base e o adaptador em uma GPU CUDA compatível:")
-    return card
+from scripts.model_card import render_card
 
 
 def prepare(adapter=None, model_id="ViniciusKhan/ignis-image-lora-v1", space_id="ViniciusKhan/IGNIS-Image-Lab"):
@@ -102,7 +75,9 @@ def prepare(adapter=None, model_id="ViniciusKhan/ignis-image-lora-v1", space_id=
     shutil.copy2(folder / "pytorch_lora_weights.safetensors", model_dir)
     for path in license_files:
         shutil.copy2(path, model_dir / ("BASE_" + path.name))
-    card = render_card(model_id, report, config, dataset)
+    card = render_card(model_id, report, config, dataset, evaluation, folder / "pytorch_lora_weights.safetensors")
+    (model_dir / "assets").mkdir(exist_ok=True)
+    shutil.copy2(ROOT / "huggingface/model/assets/ignis-multimodal.png", model_dir / "assets/ignis-multimodal.png")
     (model_dir / "README.md").write_text(card, encoding="utf-8")
     write_json(model_dir / "training_config.json", config)
     write_json(model_dir / "training_report.json", report)

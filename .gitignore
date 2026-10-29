@@ -11,3 +11,17 @@ __pycache__/
 .pytest_cache/
 *.pyc
 *.log
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.gguf
+*.before-*
+*.bak
+logs-dependencies.txt
+*.tsbuildinfo

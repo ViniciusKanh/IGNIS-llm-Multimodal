@@ -29,6 +29,12 @@ def prepare_space(project, output):
     (output / "release.json").write_text(json.dumps(release, indent=2), encoding="utf-8")
     assets = output / "assets"
     assets.mkdir(exist_ok=True)
+    # A documentação do modelo utiliza o logotipo por caminho relativo.
+    logo = model_folder / "assets/ignis-multimodal.png"
+    if not logo.is_file():
+        logo = SOURCE / "huggingface/model/assets/ignis-multimodal.png"
+    if logo.is_file():
+        shutil.copy2(logo, assets / "ignis-multimodal.png")
     for original, destination in (("training_report.json", "training.json"), ("training_config.json", "config.json"),
                                    ("evaluation_report.json", "evaluation.json")):
         shutil.copy2(model_folder / original, assets / destination)
@@ -54,19 +60,31 @@ def publish(project, output, space_id, release):
         raise RuntimeError("A conta autenticada não corresponde ao proprietário indicado para o Space.")
     # Somente ZeroGPU: não há tentativa de contratar CPU Upgrade ou GPU dedicada.
     try:
-        api.create_repo(space_id, repo_type="space", space_sdk="gradio", space_hardware="zero-a10g",
-                        space_variables=[{"key": "IGNIS_ZERO_GPU", "value": "1"}], exist_ok=True)
+        # Uma tentativa anterior pode ter criado o Space antes de falhar no upload.
+        # Consultar primeiro evita que /repos/create reavalie a cota de criação.
+        try:
+            api.space_info(space_id)
+        except HfHubHTTPError as exc:
+            if exc.response is None or exc.response.status_code != 404:
+                raise
+            api.create_repo(space_id, repo_type="space", space_sdk="gradio", space_hardware="zero-a10g",
+                            space_variables=[{"key": "IGNIS_ZERO_GPU", "value": "1"}], exist_ok=True)
+            print(f"Space criado: {space_id}", flush=True)
+        else:
+            print(f"Reutilizando Space existente: {space_id}", flush=True)
         current = api.get_space_runtime(space_id)
         if current.hardware != "zero-a10g" and current.requested_hardware != "zero-a10g":
             api.request_space_hardware(space_id, hardware="zero-a10g")
         api.add_space_variable(space_id, key="IGNIS_ZERO_GPU", value="1")
     except HfHubHTTPError as exc:
+        if exc.response is not None and exc.response.status_code == 402 and "limited to 2 ZeroGPU Spaces" in str(exc):
+            raise RuntimeError("A conta atingiu o limite de dois Spaces ZeroGPU. Libere uma vaga alterando um Space que não utiliza ou escolha um Space existente para atualizar. Nenhum Space foi excluído e nenhum plano pago foi solicitado.") from exc
         if exc.response is not None and exc.response.status_code in (402, 403):
             raise RuntimeError("O Hugging Face não autorizou ZeroGPU nesta conta ou o token não permite criar o Space. Nenhum hardware pago foi solicitado. Confira a elegibilidade ZeroGPU nas configurações da conta.") from exc
         raise
     commit = api.upload_folder(repo_id=space_id, repo_type="space", folder_path=output,
         allow_patterns=["app.py", "runtime.py", "settings.py", "styles.css", "README.md", "MODEL_CARD.md",
-                        "requirements.txt", "release.json", "assets/*.json", "assets/samples/*.png", "BASE_*"],
+                        "requirements.txt", "release.json", "assets/*.json", "assets/*.png", "assets/samples/*.png", "BASE_*"],
         commit_message="Publicar IGNIS Image Lab com ZeroGPU, estúdio, edição, comparação e documentação")
     runtime = api.get_space_runtime(space_id)
     status = {"space_id": space_id, "space_revision": commit.oid, "model_revision": release["model_revision"],
