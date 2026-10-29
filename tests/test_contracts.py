@@ -211,3 +211,15 @@ def test_gpu_lock_excludes_other_engine():
 
 def test_training_stop_requires_running_job(client):
     assert client.post("/api/training/stop").status_code == 409
+
+
+def test_hf_release_rejects_absent_training():
+    from scripts.prepare_hf_release import collect_evidence
+    with pytest.raises(RuntimeError, match="faltam pesos"):
+        collect_evidence("nonexistent-release-test/final")
+
+
+def test_hf_release_rejects_invalid_repository_identifier():
+    from scripts.prepare_hf_release import prepare
+    with pytest.raises(ValueError, match="Identificador"):
+        prepare(model_id="../../outside")

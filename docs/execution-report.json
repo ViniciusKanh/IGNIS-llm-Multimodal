@@ -29,7 +29,7 @@
     "tsx_syntax_esbuild": true,
     "skill_validator": true,
     "pytest": {
-      "passed": 20,
+      "passed": 22,
       "skipped": 11,
       "failures": 0,
       "errors": 0
@@ -64,5 +64,14 @@
     "https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5",
     "https://huggingface.co/docs/diffusers/training/lora",
     "https://api.artic.edu/docs/"
-  ]
+  ],
+  "publication_preparation": {
+    "model_id": "ViniciusKhan/ignis-image-lora-v1",
+    "space_id": "ViniciusKhan/IGNIS-Image-Lab",
+    "model_card": "huggingface/model/README.md",
+    "space": "huggingface/space",
+    "published": false,
+    "space_runtime_tested": false,
+    "reason": "Sem adaptador treinado validado na cópia de trabalho; nenhuma criação ou atualização remota executada."
+  }
 }

@@ -38,7 +38,17 @@ O pipeline pré-calcula VAE e embeddings em sequência, mantém apenas UNet/LoRA
 
 Pesos-base têm autoria pública: SmolVLM2/Qwen3-VL sob Apache 2.0; SD 1.5 sob CreativeML Open RAIL-M, com condições de uso preservadas. O código de download verifica a licença informada no Hub antes de transferir pesos. Tokens opcionais são lidos do ambiente pelo Hub; não grave tokens no repositório. Não ocorre publicação automática.
 
-## Verificação
+## Publicação do modelo e do Space
+
+Há dois destinos propostos: `ViniciusKhan/ignis-image-lora-v1` para os pesos LoRA e `ViniciusKhan/IGNIS-Image-Lab` para a demonstração Gradio. O model card detalhado está em `huggingface/model/README.md`; o código e o README do Space estão em `huggingface/space/`. Esses arquivos são preparação local, não confirmação de repositórios já publicados.
+
+Depois de concluir treinamento e comparação visual, execute `scripts/prepare-hf-release.ps1`. O empacotador exige pesos, treinamento concluído, dataset correspondente, revisão da base, licença original e amostras de avaliação existentes. Ele produz `outputs/hf-release/model/` e `outputs/hf-release/space/`, preenchendo a model card com evidências reais. Não publica datasets, caches, tokens ou estados do otimizador.
+
+Para publicar posteriormente, autentique-se com `hf auth login` e execute `scripts/prepare-hf-release.ps1 -Publish`. Essa opção envia os arquivos para os dois repositórios e fixa no Space a revisão exata dos pesos enviados. Não seleciona GPU paga nem altera a contratação de hardware. Adicione `-Private` para novos repositórios privados.
+
+O Space apresenta geração, comparação e documentação do componente de imagens. Ele roda no hardware do Hugging Face; a GPU do computador local não é utilizada pelo serviço hospedado. A versão CPU é funcional, mas pode ser lenta. Os demais módulos da plataforma local não fazem parte desta demonstração inicial.
+
+## Verificação dos componentes
 
 ```powershell
 .venv\Scripts\python.exe -m pytest -q
