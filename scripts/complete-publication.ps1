@@ -47,11 +47,20 @@ function Invoke-CheckedPython {
 }
 Write-Host '[1/7] Conferindo ambiente CUDA e dependências de visão.'
 Invoke-CheckedPython -c "import torch; assert torch.cuda.is_available(), 'CUDA indisponivel no ambiente Python do projeto'; print('PyTorch',torch.__version__,'CUDA',torch.version.cuda)"
-& $PythonExe -c "import torchvision; from transformers import AutoProcessor; print(torchvision.__version__)"
+$VisionProbe = @'
+try:
+    import torchvision
+    print('Torchvision:', torchvision.__version__)
+except Exception as error:
+    print('Dependencia de visao requer ajuste:', error)
+    raise SystemExit(1)
+'@
+& $PythonExe -c $VisionProbe
 if ($LASTEXITCODE -ne 0) {
     $TorchVersion = (& $PythonExe -c "import torch; print(torch.__version__)").Trim()
     Invoke-CheckedPython -m pip install --retries 1 --timeout 40 "torch==$TorchVersion" 'torchvision>=0.22,<1' --index-url https://download.pytorch.org/whl/cu128
 }
+Invoke-CheckedPython -c "import torchvision; print('Visao preparada:', torchvision.__version__)"
 Write-Host '[2/7] Conferindo modelos e retomando apenas os downloads necessários.'
 Invoke-CheckedPython scripts/check_installed_models.py
 Write-Host '[3/7] Preparando dataset quando ainda não houver manifesto.'
