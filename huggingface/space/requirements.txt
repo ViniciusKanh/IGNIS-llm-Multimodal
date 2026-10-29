@@ -1,5 +1,6 @@
 gradio==5.49.1
-torch>=2.7,<3
+spaces
+torch==2.11.0
 diffusers==0.35.1
 transformers==4.57.1
 peft==0.17.1

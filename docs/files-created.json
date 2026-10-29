@@ -26,6 +26,9 @@
   "huggingface/space/README.md",
   "huggingface/space/app.py",
   "huggingface/space/requirements.txt",
+  "huggingface/space/runtime.py",
+  "huggingface/space/settings.py",
+  "huggingface/space/styles.css",
   "pytest.ini",
   "requirements.txt",
   "scripts/__init__.py",
@@ -33,6 +36,7 @@
   "scripts/check_installed_models.py",
   "scripts/common.ps1",
   "scripts/complete-publication.ps1",
+  "scripts/deploy-space.ps1",
   "scripts/download-models.ps1",
   "scripts/download_models.py",
   "scripts/evaluate.ps1",
@@ -41,6 +45,7 @@
   "scripts/prepare-hf-release.ps1",
   "scripts/prepare_dataset.py",
   "scripts/prepare_hf_release.py",
+  "scripts/publish_space.py",
   "scripts/start.ps1",
   "scripts/status.ps1",
   "scripts/status.py",
@@ -51,5 +56,6 @@
   "skills/ignis-multimodal/agents/openai.yaml",
   "skills/ignis-multimodal/references/workflow.md",
   "skills/ignis-multimodal/scripts/run-project.ps1",
-  "tests/test_contracts.py"
+  "tests/test_contracts.py",
+  "tests/test_space.py"
 ]

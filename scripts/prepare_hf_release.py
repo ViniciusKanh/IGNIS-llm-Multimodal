@@ -156,9 +156,8 @@ if __name__ == "__main__":
         release = read_json(space_dir / "release.json")
         release["model_revision"] = commit.oid
         write_json(space_dir / "release.json", release)
-        api.create_repo(args.space_id, repo_type="space", space_sdk="gradio", private=args.private, exist_ok=True)
-        api.upload_folder(repo_id=args.space_id, repo_type="space", folder_path=space_dir,
-                          commit_message="Publicar demonstração IGNIS vinculada à revisão do adaptador",
-                          allow_patterns=["README.md", "MODEL_CARD.md", "app.py", "requirements.txt", "release.json", "BASE_*"])
+        from scripts.publish_space import prepare_space, publish
+        prepare_space(ROOT, space_dir)
+        publish(ROOT, space_dir, args.space_id, release)
         print(f"Modelo: https://huggingface.co/{args.model_id}")
         print(f"Space: https://huggingface.co/spaces/{args.space_id}")

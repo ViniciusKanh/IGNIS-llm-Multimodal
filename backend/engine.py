@@ -65,7 +65,7 @@ class Engine:
                     folder = inside(ROOT / "training", adapter)
                     if not (folder / "pytorch_lora_weights.safetensors").is_file():
                         raise FileNotFoundError("Adaptador sem pesos exportados.")
-                    self.pipeline.load_lora_weights(folder, local_files_only=True)
+                    self.pipeline.load_lora_weights(folder, weight_name="pytorch_lora_weights.safetensors", local_files_only=True)
                 self.pipeline.enable_vae_slicing()
                 self.pipeline.enable_vae_tiling()
                 if cuda:

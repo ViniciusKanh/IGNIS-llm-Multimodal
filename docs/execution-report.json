@@ -51,7 +51,7 @@
     "tsx_syntax_esbuild": true,
     "skill_validator": true,
     "pytest": {
-      "passed": 24,
+      "passed": 27,
       "skipped": 11,
       "failures": 0,
       "errors": 0
@@ -136,5 +136,31 @@
     "download_scope": "images/part-000001.zip, approximately 633 MB; select up to 96 unique prompts",
     "source_parser_and_http_fallback_tested": true,
     "download_in_current_session": false
+  },
+  "space_upgrade": {
+    "features": [
+      "Estudio com presets e parametros",
+      "Comparacao com slider",
+      "Edicao image-to-image e inpainting",
+      "Historico por sessao",
+      "Receitas PNG/JSON/ZIP e importacao",
+      "Documentacao e seis comparacoes reais"
+    ],
+    "target_hardware": "zero-a10g",
+    "publication_completed": false,
+    "runtime_local_cuda_tests": {
+      "generation": true,
+      "comparison": true,
+      "image_to_image": true,
+      "inpainting": true
+    },
+    "ui_runtime_tested": false,
+    "zero_gpu_runtime_tested": false,
+    "blockers": [
+      "DNS do terminal da sessao impediu acesso a API Hugging Face",
+      "Automacao do navegador encerrada: nao foi possivel determinar a URL com seguranca no Windows",
+      "Construcao local Gradio bloqueada pela restricao de loopback do ambiente"
+    ],
+    "deployment_command": "scripts/deploy-space.ps1"
   }
 }

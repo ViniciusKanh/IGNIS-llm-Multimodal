@@ -54,6 +54,8 @@ Para publicar posteriormente, autentique-se com `hf auth login` e execute `scrip
 
 O Space apresenta geração, comparação e documentação do componente de imagens. Ele roda no hardware do Hugging Face; a GPU do computador local não é utilizada pelo serviço hospedado. A versão CPU é funcional, mas pode ser lenta. Os demais módulos da plataforma local não fazem parte desta demonstração inicial.
 
+Para criar ou atualizar somente o Space, sem retreinar ou reenviar o modelo, execute `scripts/deploy-space.ps1`. Ele prepara o estúdio, comparação com slider, edição, histórico temporário, exportação/importação de receitas e documentação com os resultados da versão publicada. Solicita exclusivamente ZeroGPU; se a conta não for elegível, para com mensagem explícita e não contrata hardware pago. A política atual exige plano pago para criar Gradio em CPU Basic, com exceção de ZeroGPU para contas elegíveis.
+
 ## Verificação dos componentes
 
 ```powershell
