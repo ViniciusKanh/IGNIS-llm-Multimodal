@@ -1,0 +1,13 @@
+.venv/
+.cache/
+models/
+datasets/
+training/
+outputs/
+logs/
+frontend/node_modules/
+frontend/dist/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.log

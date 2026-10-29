@@ -1,0 +1,4 @@
+interface:
+  display_name: "IGNIS Multimodal"
+  short_description: "Visão, imagens e LoRA locais para GPU de 6 GB"
+  default_prompt: "Use $ignis-multimodal para desenvolver e testar a plataforma multimodal local."
