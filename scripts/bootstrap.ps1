@@ -13,7 +13,7 @@ if (-not (Test-Path -LiteralPath $PythonExe)) {
     if ($LASTEXITCODE -ne 0) { throw 'Falha ao criar ambiente Python.' }
 }
 if (-not $SkipTorch) {
-    & $PythonExe -m pip install --retries 0 --timeout 20 'torch>=2.7,<3' --index-url https://download.pytorch.org/whl/cu128
+    & $PythonExe -m pip install --retries 0 --timeout 20 'torch>=2.7,<3' 'torchvision>=0.22,<1' --index-url https://download.pytorch.org/whl/cu128
     if ($LASTEXITCODE -ne 0) { throw 'Não foi possível instalar PyTorch CUDA. Verifique o acesso a download.pytorch.org.' }
 }
 & $PythonExe -m pip install --retries 0 --timeout 20 -r requirements.txt

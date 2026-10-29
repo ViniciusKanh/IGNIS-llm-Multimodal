@@ -44,6 +44,8 @@ Há dois destinos propostos: `ViniciusKhan/ignis-image-lora-v1` para os pesos Lo
 
 Depois de concluir treinamento e comparação visual, execute `scripts/prepare-hf-release.ps1`. O empacotador exige pesos, treinamento concluído, dataset correspondente, revisão da base, licença original e amostras de avaliação existentes. Ele produz `outputs/hf-release/model/` e `outputs/hf-release/space/`, preenchendo a model card com evidências reais. Não publica datasets, caches, tokens ou estados do otimizador.
 
+Para aplicar as correções desta cópia ao projeto instalado e executar as etapas restantes de uma vez, use `scripts/complete-publication.ps1`. O comando preserva backups dos fontes substituídos, reutiliza os modelos instalados, instala Torchvision compatível com a versão CUDA do PyTorch quando necessário, prepara o dataset, treina/retoma o adaptador, compara, compila e empacota. Sem a opção `-Publish`, a execução termina com os pacotes locais e não envia nada ao Hub.
+
 Para publicar posteriormente, autentique-se com `hf auth login` e execute `scripts/prepare-hf-release.ps1 -Publish`. Essa opção envia os arquivos para os dois repositórios e fixa no Space a revisão exata dos pesos enviados. Não seleciona GPU paga nem altera a contratação de hardware. Adicione `-Private` para novos repositórios privados.
 
 O Space apresenta geração, comparação e documentação do componente de imagens. Ele roda no hardware do Hugging Face; a GPU do computador local não é utilizada pelo serviço hospedado. A versão CPU é funcional, mas pode ser lenta. Os demais módulos da plataforma local não fazem parte desta demonstração inicial.

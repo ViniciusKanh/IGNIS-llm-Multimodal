@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import sys
 from pathlib import Path
 
@@ -20,6 +21,7 @@ def evaluate(adapter="ignis-image-lora-v1/final"):
     folder = inside(ROOT / "training", adapter)
     if not (folder / "pytorch_lora_weights.safetensors").exists():
         raise FileNotFoundError("Não há adaptador treinado para comparar.")
+    adapter_hash = hashlib.sha256((folder / "pytorch_lora_weights.safetensors").read_bytes()).hexdigest()
     name = folder.parent.name + "-" + folder.name
     destination = ROOT / "outputs/evaluations" / name
     destination.mkdir(parents=True, exist_ok=True)
@@ -36,7 +38,8 @@ def evaluate(adapter="ignis-image-lora-v1/final"):
                         canvas.paste(image, (x, 36))
                 ImageDraw.Draw(canvas).text((12, 10), f"Base | LoRA {adapter} | seed {seed}", fill="black")
                 canvas.save(destination / f"pair-{len(pairs)}.png")
-        result = {"adapter": adapter, "pairs": pairs,
+        result = {"adapter": adapter, "adapter_sha256": adapter_hash, "pairs": pairs,
+                  "base_revision": read_json(ROOT / "models/manifest.json", {}).get("sd15", {}).get("revision"),
                   "training": read_json(folder.parent / "report.json"),
                   "note": "Comparação visual pareada. FID/CLIP não calculados; não inferir qualidade apenas pela loss."}
         write_json(destination / "report.json", result)

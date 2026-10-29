@@ -1,0 +1,13 @@
+{
+  "base_model": "stable-diffusion-v1-5/stable-diffusion-v1-5",
+  "variant": "fp16",
+  "width": 256,
+  "height": 256,
+  "steps": 5,
+  "seed": 42,
+  "cuda": true,
+  "torch": "2.11.0+cu128",
+  "seconds": 5.2,
+  "blocked": false,
+  "purpose": "Teste funcional de inferencia da base, sem treinamento ou avaliacao do adaptador."
+}

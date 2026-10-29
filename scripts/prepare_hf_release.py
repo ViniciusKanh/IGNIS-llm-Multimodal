@@ -23,6 +23,10 @@ def collect_evidence(adapter):
     evaluation = read_json(evaluation_folder / "report.json", {})
     if not weights.is_file() or report.get("status") != "completed":
         raise RuntimeError("Publicação não preparada: faltam pesos e relatório de treinamento concluído.")
+    from safetensors import safe_open
+    with safe_open(weights, framework="pt", device="cpu") as tensors:
+        if not list(tensors.keys()):
+            raise RuntimeError("Adaptador vazio: não há parâmetros para publicar.")
     if report.get("step", 0) < config.get("min_steps", 300):
         raise RuntimeError("O experimento tem apenas passos de teste; não constitui a versão treinada.")
     if dataset.get("fingerprint") != config.get("dataset_fingerprint"):
@@ -31,6 +35,9 @@ def collect_evidence(adapter):
         raise RuntimeError("A revisão da base não corresponde à execução de treinamento.")
     if not evaluation.get("pairs") or evaluation.get("adapter") != adapter:
         raise RuntimeError("Falta comparação real base × LoRA para este adaptador.")
+    actual_hash = hashlib.sha256(weights.read_bytes()).hexdigest()
+    if evaluation.get("adapter_sha256") != actual_hash or evaluation.get("base_revision") != base["revision"]:
+        raise RuntimeError("A avaliação não corresponde aos pesos/revisão atuais. Execute evaluate.ps1 novamente.")
     for index in range(1, len(evaluation["pairs"]) + 1):
         if not (evaluation_folder / f"pair-{index}.png").is_file():
             raise RuntimeError("A avaliação referencia amostra inexistente.")
@@ -109,7 +116,8 @@ def prepare(adapter="ignis-image-lora-v1/final", model_id="ViniciusKhan/ignis-im
         sample = f"pair-{index}.png"
         shutil.copy2(eval_folder / sample, model_dir / "samples" / sample)
         pairs.append({"prompt": pair["prompt"], "seed": pair["seed"], "sample": "samples/" + sample})
-    write_json(model_dir / "evaluation_report.json", {"adapter": adapter, "pairs": pairs,
+    write_json(model_dir / "evaluation_report.json", {"adapter": adapter, "adapter_sha256": evaluation["adapter_sha256"],
+                                                      "base_revision": evaluation["base_revision"], "pairs": pairs,
                                                       "note": evaluation.get("note")})
     for path in (ROOT / "huggingface/space").iterdir():
         if path.is_file():

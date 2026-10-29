@@ -16,13 +16,35 @@
     "Paired base-LoRA evaluation",
     "PowerShell bootstrap, downloads, training, evaluation, startup, status and installer"
   ],
-  "models_downloaded": [],
+  "models_downloaded": [
+    {
+      "key": "smolvlm",
+      "repo": "HuggingFaceTB/SmolVLM2-500M-Video-Instruct",
+      "revision": "7b375e1b73b11138ff12fe22c8f2822d8fe03467",
+      "bytes": 2034856030,
+      "status": "installed"
+    },
+    {
+      "key": "sd15",
+      "repo": "stable-diffusion-v1-5/stable-diffusion-v1-5",
+      "revision": "451f4fe16113bff5a5d2269ed5ad43b0592e9a14",
+      "bytes": 2742232091,
+      "status": "installed"
+    },
+    {
+      "key": "qwen",
+      "repo": "Qwen/Qwen3-VL-2B-Instruct",
+      "revision": "89644892e4d85e24eaac8bacfd4f463576704203",
+      "bytes": 4266647442,
+      "status": "installed"
+    }
+  ],
   "dataset_images_downloaded": 0,
   "optimizer_updates_executed": 0,
-  "inference_with_real_weights_tested": false,
+  "inference_with_real_weights_tested": true,
   "frontend_production_build_tested": false,
   "training_metrics": null,
-  "generated_images": 0,
+  "generated_images": 1,
   "verified": {
     "python_compilation": true,
     "powershell_syntax": true,
@@ -44,11 +66,11 @@
     "cuda_available_to_torch": false
   },
   "blockers": [
-    "Session cannot write requested project/skill destination; implementation prepared in writable workspace",
-    "Terminal DNS resolution unavailable for huggingface.co and api.artic.edu",
-    "CUDA wheel installation failed: no distribution returned by configured PyTorch index in this session",
-    "Frontend dependencies absent from npm cache; production build unavailable",
-    "HTTP tests cannot initialize Windows asyncio loopback socketpair in this sandbox; 11 HTTP tests skipped"
+    "Esta sessão não grava em C:/dev; aplicar atualizações com complete-publication.ps1 no PowerShell do usuário",
+    "Terminal desta sessão não resolve fontes externas para preparar dados e dependências",
+    "Processadores de visão não carregam no ambiente instalado sem Torchvision",
+    "Adaptador treinado e avaliação ainda não existem no projeto instalado",
+    "Testes HTTP ignorados devido à restrição de loopback desta sessão"
   ],
   "attempts": {
     "bootstrap": "logs/bootstrap-attempt.log",
@@ -72,6 +94,37 @@
     "space": "huggingface/space",
     "published": false,
     "space_runtime_tested": false,
-    "reason": "Sem adaptador treinado validado na cópia de trabalho; nenhuma criação ou atualização remota executada."
-  }
+    "reason": "Sem adaptador treinado validado na cópia de trabalho; nenhuma criação ou atualização remota executada.",
+    "completion_command": "scripts/complete-publication.ps1",
+    "ready_to_upload": false,
+    "remaining": [
+      "Instalar Torchvision compatível no ambiente local",
+      "Preparar dataset válido",
+      "Executar treinamento LoRA",
+      "Executar comparação com hash dos pesos",
+      "Gerar pacotes finais com evidências"
+    ]
+  },
+  "model_verification_location": "C:/dev/Ignis-Multimodal/models",
+  "inference_test": {
+    "base_model": "stable-diffusion-v1-5/stable-diffusion-v1-5",
+    "variant": "fp16",
+    "width": 256,
+    "height": 256,
+    "steps": 5,
+    "seed": 42,
+    "cuda": true,
+    "torch": "2.11.0+cu128",
+    "seconds": 5.2,
+    "blocked": false,
+    "purpose": "Teste funcional de inferencia da base, sem treinamento ou avaliacao do adaptador.",
+    "scope": "Somente Stable Diffusion 1.5 base. SmolVLM2 e Qwen ainda requerem Torchvision; LoRA ainda não treinado."
+  },
+  "deployed_python": {
+    "torch": "2.11.0+cu128",
+    "cuda": true,
+    "torchvision_installed": false,
+    "frontend_dist_exists": true
+  },
+  "generated_images_scope": "Teste funcional da base, não resultado do adaptador."
 }
