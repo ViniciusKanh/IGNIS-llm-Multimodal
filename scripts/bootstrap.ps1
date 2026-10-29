@@ -1,4 +1,4 @@
-param([switch]$SkipFrontend, [switch]$SkipTorch)
+﻿param([switch]$SkipFrontend, [switch]$SkipTorch)
 $ErrorActionPreference = 'Stop'
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 Set-Location -LiteralPath $ProjectRoot

@@ -1,4 +1,4 @@
-param([string]$Destination = 'C:\dev\Ignis-Multimodal')
+﻿param([string]$Destination = 'C:\dev\Ignis-Multimodal')
 $ErrorActionPreference = 'Stop'
 $SourceRoot = Split-Path -Parent $PSScriptRoot
 if (-not (Test-Path -LiteralPath (Join-Path $Destination 'backend/app.py'))) {

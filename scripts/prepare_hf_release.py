@@ -74,11 +74,12 @@ def render_card(model_id, report, config, dataset):
     return card
 
 
-def prepare(adapter="ignis-image-lora-v1/final", model_id="ViniciusKhan/ignis-image-lora-v1", space_id="ViniciusKhan/IGNIS-Image-Lab"):
+def prepare(adapter=None, model_id="ViniciusKhan/ignis-image-lora-v1", space_id="ViniciusKhan/IGNIS-Image-Lab"):
     import re
     for identifier in (model_id, space_id):
         if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", identifier):
             raise ValueError("Identificador HF inválido: use usuario/repositorio.")
+    adapter = adapter or read_json(ROOT / "training/latest-run.json", {}).get("adapter") or read_json(ROOT / "configs/train.json")["name"] + "/final"
     folder, report, config, dataset, base, eval_folder, evaluation = collect_evidence(adapter)
     release = ROOT / "outputs/hf-release"
     model_dir, space_dir = release / "model", release / "space"
@@ -108,7 +109,7 @@ def prepare(adapter="ignis-image-lora-v1/final", model_id="ViniciusKhan/ignis-im
     write_json(model_dir / "base_model.json", base)
     provenance = {"fingerprint": dataset["fingerprint"], "source": dataset.get("source")}
     for split in ("train", "validation"):
-        provenance[split] = [{k: row[k] for k in ("caption", "sha256", "source", "license")}
+        provenance[split] = [{k: row[k] for k in ("caption", "sha256", "source", "license", "synthetic", "source_file", "source_image") if k in row}
                              for row in dataset[split]]
     write_json(model_dir / "data_provenance.json", provenance)
     pairs = []
@@ -136,7 +137,7 @@ def prepare(adapter="ignis-image-lora-v1/final", model_id="ViniciusKhan/ignis-im
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--adapter", default="ignis-image-lora-v1/final")
+    parser.add_argument("--adapter")
     parser.add_argument("--model-id", default="ViniciusKhan/ignis-image-lora-v1")
     parser.add_argument("--space-id", default="ViniciusKhan/IGNIS-Image-Lab")
     parser.add_argument("--publish", action="store_true", help="Cria ou atualiza os dois repositórios no HF; requer login com permissão de escrita.")

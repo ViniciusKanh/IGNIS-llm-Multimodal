@@ -324,6 +324,7 @@ def main():
                 write_json(ROOT / "logs/last-training-oom.json", {"resolution": resolution, "error": str(exc)})
         if run_dir is None:
             raise RuntimeError("Treinamento impedido por VRAM nas resoluções tentadas; consulte logs/last-training-oom.json.")
+        write_json(ROOT / "training/latest-run.json", {"name": run_dir.name, "adapter": run_dir.name + "/final"})
     if not args.no_evaluate:
         from scripts.evaluate import evaluate
         evaluate(run_dir.relative_to(ROOT / "training").as_posix() + "/final")

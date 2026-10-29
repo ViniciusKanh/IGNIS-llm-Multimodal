@@ -37,7 +37,7 @@ A autoria do projeto IGNIS e dos adaptadores não transfere a autoria dos pesos-
 
 ## Objetivo e uso pretendido
 
-Investigar adaptação eficiente de geração de imagens em hardware de consumo, com memória de GPU limitada. O experimento inicial utiliza obras de arte com metadados institucionais e indicador de domínio público, visando explorar adaptação visual. Não foi demonstrada uma melhoria geral sobre o modelo-base, nem uma especialização artística consistente.
+Investigar adaptação eficiente de geração de imagens em hardware de consumo, com memória de GPU limitada. O coletor suporta obras em domínio público e, quando a instituição estiver indisponível, um recorte sintético do DiffusionDB, com licença CC0 declarada pelos mantenedores. A fonte realmente utilizada será identificada no manifesto da execução. Não foi demonstrada uma melhoria geral sobre o modelo-base, nem uma especialização artística consistente.
 
 Os usos previstos são pesquisa, demonstração e experimentação criativa dentro das condições de uso da base. Não utilizar as imagens como prova factual, reprodução documental exata, diagnóstico ou evidência científica sem verificação independente.
 
@@ -49,13 +49,13 @@ O pré-cálculo de latentes e embeddings ocorre em sequência para reduzir a coe
 
 ## Dados e proveniência
 
-O coletor implementado consulta a API do Art Institute of Chicago e aceita somente registros com `is_public_domain=true` e imagem disponível. O plano inicial limita a coleta a 96 imagens; esse número é uma configuração, não uma quantidade já coletada.
+O coletor implementado consulta a API do Art Institute of Chicago e aceita somente registros com `is_public_domain=true` e imagem disponível. Se a instituição bloquear o acesso ou não fornecer dados suficientes, o coletor usa um único lote do dataset `poloclub/diffusiondb`, hospedado no Hugging Face, cuja model card declara licença CC0-1.0. O plano inicial seleciona até 96 imagens; esse número é uma configuração, não uma quantidade já coletada.
 
-As legendas são construídas com título, tipo de obra e materiais informados pela instituição; não são descrições visuais humanas exaustivas. Metadados podem conter lacunas, vieses de catalogação ou descrições inadequadas para treinamento.
+As legendas são construídas com metadados de catálogo na fonte museológica, ou recuperadas dos prompts originais no DiffusionDB. No segundo caso, as imagens são sintéticas e geradas com Stable Diffusion; os prompts não garantem correspondência exata ao conteúdo visual. Não se deve apresentar esse recorte como fotografias reais, coleção de obras museológicas ou evidência de generalização superior. O coletor limita repetições de prompts e aplica exclusão textual heurística, que não substitui inspeção visual.
 
 As imagens são deduplicadas pelo hash dos pixels decodificados. Aproximadamente 15% das imagens únicas são reservadas para validação, com no mínimo duas imagens. O manifesto registra arquivo, legenda, hash, origem e licença. A publicação inicial não deve redistribuir o dataset por padrão.
 
-Fontes: [API e política de imagens](https://api.artic.edu/docs/#copyright) e [modelo-base](https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5).
+Fontes: [API e política de imagens](https://api.artic.edu/docs/#copyright), [DiffusionDB — dados e licença](https://huggingface.co/datasets/poloclub/diffusiondb) e [modelo-base](https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5).
 
 ## Configuração inicial planejada
 
@@ -115,7 +115,8 @@ O filtro de segurança da base permanece habilitado. A existência de instruçõ
 
 ## Limitações e riscos
 
-- Dataset pequeno, heterogêneo e com legendas derivadas de catálogo; risco de sobreajuste e associação espúria entre título e conteúdo visual.
+- Dataset pequeno, heterogêneo e com legendas derivadas de catálogo ou prompts de geração; risco de sobreajuste e associação espúria entre texto e conteúdo visual.
+- Quando a fonte for DiffusionDB, treinar sobre imagens sintéticas da mesma família de modelos pode reforçar artefatos e vieses existentes, sem adicionar conhecimento visual novo.
 - Vieses e limitações herdados da base e da seleção museológica.
 - Textos, mãos, anatomia, contagem de objetos e relações espaciais podem apresentar erros.
 - Não há comprovação de geração confiável de texto em português ou de domínio geral multimodal neste adaptador.

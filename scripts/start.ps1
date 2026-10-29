@@ -1,4 +1,4 @@
-param([switch]$Dev)
+﻿param([switch]$Dev)
 . "$PSScriptRoot/common.ps1"
 if ($Dev) {
     $NodeExe = (Get-Command node.exe).Source

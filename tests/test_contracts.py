@@ -223,3 +223,40 @@ def test_hf_release_rejects_invalid_repository_identifier():
     from scripts.prepare_hf_release import prepare
     with pytest.raises(ValueError, match="Identificador"):
         prepare(model_id="../../outside")
+
+
+def test_diffusiondb_zip_rejects_duplicate_prompts_and_paths(tmp_path, monkeypatch):
+    import zipfile
+    import scripts.prepare_dataset as module
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    folder = tmp_path / "datasets/images"
+    archive = tmp_path / "fixture.zip"
+    metadata = {}
+    with zipfile.ZipFile(archive, "w") as stream:
+        for index, caption in enumerate([
+            "A watercolor landscape with mountains", "A watercolor landscape with mountains",
+            "An oil painting of a quiet garden", "nsfw nude photograph of a person",
+        ]):
+            name = f"fixture-{index}.png"
+            buffer = io.BytesIO()
+            Image.new("RGB", (256, 256), (index * 40, 0, 0)).save(buffer, format="PNG")
+            stream.writestr(name, buffer.getvalue())
+            metadata[name] = {"p": caption}
+        metadata["../outside.png"] = {"p": "A valid caption attached to an invalid path"}
+        stream.writestr("part-000001.json", json.dumps(metadata))
+    rows = module.diffusiondb_records(archive, folder, 96, "test-revision")
+    assert len(rows) == 2
+    assert len({row["caption"] for row in rows}) == 2
+    assert all(row["synthetic"] and row["license"] == "cc0-1.0" for row in rows)
+    assert not (tmp_path / "outside.png").exists()
+
+
+def test_public_dataset_falls_back_on_http_403(monkeypatch):
+    import requests
+    import scripts.prepare_dataset as module
+    def denied(limit):
+        raise requests.HTTPError("403 Forbidden")
+    monkeypatch.setattr(module, "artic_dataset", denied)
+    monkeypatch.setattr(module, "write_json", lambda *args: None)
+    monkeypatch.setattr(module, "diffusiondb_dataset", lambda limit: {"source": "diffusiondb", "limit": limit})
+    assert module.public_dataset(96) == {"source": "diffusiondb", "limit": 96}

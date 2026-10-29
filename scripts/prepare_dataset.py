@@ -6,7 +6,10 @@ import hashlib
 import io
 import json
 import random
+import re
+import shutil
 import sys
+import zipfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -40,7 +43,7 @@ def save_dataset(records, source):
     return document
 
 
-def public_dataset(limit=96):
+def artic_dataset(limit=96):
     """Seleciona obras marcadas individualmente como domínio público pela instituição."""
     session = requests.Session()
     session.headers["User-Agent"] = "IgnisMultimodal/0.1 (local research dataset)"
@@ -91,6 +94,95 @@ def public_dataset(limit=96):
                                  "scope": "Somente is_public_domain=true; metadados individuais preservados."})
 
 
+def diffusiondb_records(archive_path, folder, limit, revision):
+    """Lê apenas as imagens selecionadas do lote, sem extrair caminhos do ZIP."""
+    records, captions, hashes = [], set(), set()
+    excluded = re.compile(r"\b(nsfw|nude|naked|porn|sex|sexual|gore|blood|nipple|breast|penis|vagina)\b", re.I)
+    with zipfile.ZipFile(archive_path) as archive:
+        members = {Path(item.filename).name: item for item in archive.infolist() if not item.is_dir()}
+        metadata_files = [item for name, item in members.items() if name.endswith(".json")]
+        if len(metadata_files) != 1 or metadata_files[0].file_size > 20 * 1024**2:
+            raise ValueError("Estrutura de metadados inesperada no lote DiffusionDB.")
+        metadata = json.loads(archive.read(metadata_files[0]))
+        candidates = sorted(metadata.items())
+        random.Random(42).shuffle(candidates)
+        folder.mkdir(parents=True, exist_ok=True)
+        for name, info in candidates:
+            caption = str(info.get("p") or info.get("prompt") or "").strip()
+            normalized = " ".join(caption.lower().split())
+            if len(caption) < 15 or excluded.search(caption) or normalized in captions:
+                continue
+            if name != Path(name).name or not re.fullmatch(r"[a-zA-Z0-9_-]+\.png", name):
+                continue
+            member = members.get(name)
+            if member is None or member.file_size > 20 * 1024**2:
+                continue
+            with Image.open(io.BytesIO(archive.read(member))) as source:
+                if min(source.size) < 256 or source.width * source.height > 16_000_000:
+                    continue
+                image = ImageOps.exif_transpose(source).convert("RGB")
+                digest = pixel_hash(image)
+                if digest in hashes:
+                    continue
+                target = folder / name
+                image.save(target)
+            captions.add(normalized)
+            hashes.add(digest)
+            records.append({"file": target.relative_to(ROOT / "datasets").as_posix(), "caption": caption,
+                            "sha256": digest, "license": "cc0-1.0", "synthetic": True,
+                            "source": f"https://huggingface.co/datasets/poloclub/diffusiondb/tree/{revision}",
+                            "source_file": "images/part-000001.zip", "source_image": name})
+            print(f"DiffusionDB: {len(records)}/{limit} imagens selecionadas", flush=True)
+            if len(records) >= limit:
+                break
+    return records
+
+
+def diffusiondb_dataset(limit=96):
+    """Baixa um único lote público do HF e registra sua licença, revisão e origem sintética."""
+    from huggingface_hub import HfApi, hf_hub_download
+    repository = "poloclub/diffusiondb"
+    info = HfApi().dataset_info(repository, files_metadata=True)
+    card = info.card_data.to_dict() if info.card_data is not None else {}
+    licenses = card.get("license", [])
+    licenses = [licenses] if isinstance(licenses, str) else licenses
+    if "cc0-1.0" not in licenses:
+        raise RuntimeError(f"Licença do DiffusionDB ausente ou alterada: {licenses!r}.")
+    filename = "images/part-000001.zip"
+    entry = next((item for item in info.siblings if item.rfilename == filename), None)
+    if entry is None or not entry.size or entry.size > 1024**3:
+        raise RuntimeError("Lote ausente ou maior que o limite de download de 1 GB.")
+    destination = ROOT / "datasets/diffusiondb/source"
+    destination.mkdir(parents=True, exist_ok=True)
+    if shutil.disk_usage(ROOT).free < entry.size + 1024**3:
+        raise RuntimeError("Espaço insuficiente para o lote e as imagens selecionadas.")
+    print(f"Fonte alternativa: DiffusionDB CC0; um lote de {entry.size / 1024**2:.0f} MiB, seleção de até {limit} imagens.", flush=True)
+    archive_path = hf_hub_download(repository, filename, repo_type="dataset", revision=info.sha, local_dir=destination)
+    hf_hub_download(repository, "README.md", repo_type="dataset", revision=info.sha, local_dir=destination)
+    records = diffusiondb_records(archive_path, ROOT / "datasets/diffusiondb/images", limit, info.sha)
+    if len(records) < min(limit, 24):
+        raise RuntimeError(f"Apenas {len(records)} imagens elegíveis; não foi preparado um dataset de qualidade suficiente.")
+    return save_dataset(records, {"name": "DiffusionDB — recorte experimental de imagens sintéticas",
+                                 "repo": repository, "revision": info.sha, "license": "cc0-1.0",
+                                 "terms": f"https://huggingface.co/datasets/{repository}/blob/{info.sha}/README.md",
+                                 "synthetic": True, "source_file": filename,
+                                 "scope": "Um exemplar por prompt normalizado; deduplicação por pixels; exclusão textual heurística. Não há certificação de segurança visual.",
+                                 "limitation": "Imagens geradas por Stable Diffusion. Não são fotografias reais nem demonstram melhoria geral da base."})
+
+
+def public_dataset(limit=96, source="auto"):
+    if source == "diffusiondb":
+        return diffusiondb_dataset(limit)
+    if source == "artic":
+        return artic_dataset(limit)
+    try:
+        return artic_dataset(limit)
+    except (requests.RequestException, ValueError) as exc:
+        print(f"Fonte do museu indisponível ({exc}); usando DiffusionDB no Hugging Face.", flush=True)
+        write_json(ROOT / "logs/dataset-source-fallback.json", {"from": "artic", "to": "diffusiondb", "reason": str(exc)})
+        return diffusiondb_dataset(limit)
+
+
 def local_dataset(metadata: str):
     """Importa JSONL dentro de datasets: file, caption, license e source obrigatórios."""
     records = []
@@ -110,7 +202,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--limit", type=int, default=96)
     parser.add_argument("--metadata", help="JSONL relativo a datasets/; omita para dataset público.")
+    parser.add_argument("--source", choices=["auto", "diffusiondb", "artic"], default="auto")
     args = parser.parse_args()
     if not 12 <= args.limit <= 1000:
         parser.error("limit deve estar entre 12 e 1000")
-    local_dataset(args.metadata) if args.metadata else public_dataset(args.limit)
+    local_dataset(args.metadata) if args.metadata else public_dataset(args.limit, args.source)

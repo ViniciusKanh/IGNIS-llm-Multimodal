@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$Project = 'C:\dev\Ignis-Multimodal',
     [switch]$Publish,
     [switch]$Private
@@ -70,6 +70,10 @@ Invoke-CheckedPython scripts/train_lora.py --no-evaluate
 Write-Host '[5/7] Comparando modelo-base e adaptador final.'
 $TrainingConfig = Get-Content -LiteralPath 'configs/train.json' -Raw -Encoding UTF8 | ConvertFrom-Json
 $Adapter = "$($TrainingConfig.name)/final"
+if (Test-Path -LiteralPath 'training/latest-run.json') {
+    $LatestRun = Get-Content -LiteralPath 'training/latest-run.json' -Raw -Encoding UTF8 | ConvertFrom-Json
+    $Adapter = $LatestRun.adapter
+}
 Invoke-CheckedPython scripts/evaluate.py --adapter $Adapter
 Write-Host '[6/7] Compilando a interface local.'
 Push-Location frontend

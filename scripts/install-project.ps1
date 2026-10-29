@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$Destination = 'C:\dev\Ignis-Multimodal',
     [string]$SkillDestination = 'C:\Users\Vinicius Santos\.codex\skills\ignis-multimodal'
 )

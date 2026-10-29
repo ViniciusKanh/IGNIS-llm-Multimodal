@@ -21,7 +21,11 @@ A interface compilada abre em `http://127.0.0.1:8000`. Para desenvolvimento, use
 
 ## Dados e treinamento
 
-O experimento inicial seleciona 96 obras com indicador individual de domínio público na API do Art Institute of Chicago. As legendas vêm dos metadados da instituição. Nenhum dado é utilizado sem legenda, licença e origem registradas. A preparação remove duplicatas por pixels e reserva 15% para validação.
+O experimento inicial seleciona até 96 imagens. A fonte museológica usa obras com indicador individual de domínio público na API do Art Institute of Chicago. Quando ela retorna erro HTTP, inclusive 403, ou não há imagens suficientes, o coletor usa o dataset público `poloclub/diffusiondb`, com licença CC0 declarada na origem. Esse caminho baixa somente o primeiro lote, de aproximadamente 633 MB, e seleciona as imagens do experimento. Não exige instalar a biblioteca Datasets.
+
+O DiffusionDB contém imagens sintéticas e seus prompts originais; o manifesto e a model card registram essa origem explicitamente. O recorte seleciona um exemplar por prompt normalizado, deduplica pixels e aplica exclusão textual heurística. Isso não garante segurança visual nem melhoria do modelo-base; inspecione os dados e os resultados. A separação reserva aproximadamente 15% para validação. Nenhum dado é utilizado sem legenda, licença e origem registradas.
+
+Para escolher diretamente a fonte alternativa, execute `.venv\Scripts\python.exe scripts/prepare_dataset.py --source diffusiondb`. O modo padrão tenta o museu e muda automaticamente para a alternativa quando necessário.
 
 Para imagens próprias, coloque os arquivos em `datasets/` e um JSONL com `file`, `caption`, `license`, `source`. Execute `.venv\Scripts\python.exe scripts/prepare_dataset.py --metadata minhas-imagens.jsonl`.
 

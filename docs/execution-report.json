@@ -51,7 +51,7 @@
     "tsx_syntax_esbuild": true,
     "skill_validator": true,
     "pytest": {
-      "passed": 22,
+      "passed": 24,
       "skipped": 11,
       "failures": 0,
       "errors": 0
@@ -66,11 +66,11 @@
     "cuda_available_to_torch": false
   },
   "blockers": [
-    "Esta sessão não grava em C:/dev; aplicar atualizações com complete-publication.ps1 no PowerShell do usuário",
-    "Terminal desta sessão não resolve fontes externas para preparar dados e dependências",
-    "Processadores de visão não carregam no ambiente instalado sem Torchvision",
-    "Adaptador treinado e avaliação ainda não existem no projeto instalado",
-    "Testes HTTP ignorados devido à restrição de loopback desta sessão"
+    "A API do museu retorna HTTP 403; corrigido com fonte alternativa licenciada no HF",
+    "Esta sessão não grava em C:/dev; aplicar atualizações pelo PowerShell do usuário",
+    "O terminal desta sessão não resolve fontes externas para coletar o dataset",
+    "Adaptador treinado e avaliação ainda não confirmados",
+    "Testes HTTP ignorados por restrição de loopback da sessão"
   ],
   "attempts": {
     "bootstrap": "logs/bootstrap-attempt.log",
@@ -98,11 +98,10 @@
     "completion_command": "scripts/complete-publication.ps1",
     "ready_to_upload": false,
     "remaining": [
-      "Instalar Torchvision compatível no ambiente local",
-      "Preparar dataset válido",
-      "Executar treinamento LoRA",
-      "Executar comparação com hash dos pesos",
-      "Gerar pacotes finais com evidências"
+      "Executar o coletor atualizado com fonte alternativa",
+      "Treinar o adaptador",
+      "Avaliar os pesos finais",
+      "Gerar os pacotes de publicação"
     ]
   },
   "model_verification_location": "C:/dev/Ignis-Multimodal/models",
@@ -123,8 +122,19 @@
   "deployed_python": {
     "torch": "2.11.0+cu128",
     "cuda": true,
-    "torchvision_installed": false,
-    "frontend_dist_exists": true
+    "torchvision_installed": true,
+    "frontend_dist_exists": true,
+    "torchvision_version": "0.26.0+cu128 (confirmed in user log)"
   },
-  "generated_images_scope": "Teste funcional da base, não resultado do adaptador."
+  "generated_images_scope": "Teste funcional da base, não resultado do adaptador.",
+  "dataset_fallback": {
+    "primary": "Art Institute of Chicago",
+    "observed_error": "HTTP 403 reported by user",
+    "fallback": "poloclub/diffusiondb",
+    "license": "cc0-1.0",
+    "synthetic": true,
+    "download_scope": "images/part-000001.zip, approximately 633 MB; select up to 96 unique prompts",
+    "source_parser_and_http_fallback_tested": true,
+    "download_in_current_session": false
+  }
 }

@@ -1,4 +1,4 @@
-param(
+﻿param(
     [ValidateSet('bootstrap','download-models','train-lora','evaluate','start','status')]
     [string]$Action = 'status',
     [string]$Project = 'C:\dev\Ignis-Multimodal',
