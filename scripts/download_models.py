@@ -45,7 +45,7 @@ def download(key: str):
     from huggingface_hub import HfApi, snapshot_download
     with FileLock(str(ROOT / "models/download.lock"), timeout=0):
         info = HfApi().model_info(MODELS[key]["repo"], files_metadata=True)
-        card = dict(info.card_data or {})
+        card = info.card_data.to_dict() if info.card_data is not None else {}
         actual_license = card.get("license")
         if actual_license != MODELS[key]["license"]:
             raise RuntimeError(f"Licença alterada ou ausente: {actual_license!r}; revisar antes do download.")
