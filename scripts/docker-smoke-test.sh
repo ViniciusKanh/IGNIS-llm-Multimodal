@@ -79,7 +79,10 @@ echo "== Persistência"
 CONFIG='{"name":"docker-smoke","rank":8,"resolution":512,"batch_size":1,"gradient_accumulation":4,"learning_rate":0.0001,"max_steps":800,"warmup_steps":50,"checkpoint_every":50,"validation_every":50,"patience":5,"min_steps":300,"seed":42}'
 check "POST /api/config com origem permitida" curl -fsS -X POST -H "Origin: http://127.0.0.1:${PORT}" \
     -H 'Content-Type: application/json' -d "$CONFIG" "http://127.0.0.1:${PORT}/api/config" -o /dev/null
-check "configuração gravada no volume do host" grep -q docker-smoke "$DATA/configs/train.json"
+# A aplicação grava JSON com permissão 0600 (UID do container); o runner do CI usa outro UID,
+# então o arquivo do host é lido por um container auxiliar, sem alterar permissões.
+check "configuração gravada no volume do host" \
+    docker run --rm --user 0 --entrypoint grep -v "$DATA/configs:/host-configs:ro" "$IMAGE" -q docker-smoke /host-configs/train.json
 check "SQLite de histórico criado em outputs" sh -c "curl -fsS http://127.0.0.1:${PORT}/api/chat/smoke >/dev/null && test -f '$DATA/outputs/history.sqlite'"
 docker restart "$NAME" >/dev/null
 for _ in $(seq 1 60); do curl -fsS "http://127.0.0.1:${PORT}/api/health" >/dev/null 2>&1 && break; sleep 2; done
