@@ -142,3 +142,10 @@ def test_gpu_check_reports_missing_models_without_inference(tmp_path, monkeypatc
 @pytest.mark.parametrize("name", ["compose.yaml", "compose.gpu.yaml", ".github/workflows/docker-publish.yml"])
 def test_distribution_files_are_valid_yaml(name):
     assert yaml.safe_load(read(name))
+
+
+def test_vision_processor_runtime_dependencies_installed():
+    """SmolVLM2 exige num2words no processador; a ausência só aparecia na inferência real."""
+    from transformers.utils import is_num2words_available, is_torchvision_available
+    assert is_num2words_available(), "instale requirements.txt (num2words)"
+    assert is_torchvision_available()
