@@ -1,0 +1,48 @@
+# IGNIS Multimodal — execução local com Docker Compose (CPU ou GPU).
+#
+#   CPU:            docker compose up -d
+#   GPU NVIDIA:     docker compose -f compose.yaml -f compose.gpu.yaml up -d
+#   Build local:    docker compose build   (gera a mesma imagem a partir do código)
+#
+# Os dados ficam FORA da imagem, em pastas do host (por padrão, as pastas do próprio
+# projeto: models/, datasets/, training/, outputs/, logs/, configs/). Assim uma instalação
+# Windows existente reaproveita pesos, adaptadores e experimentos sem novo download.
+# A porta é publicada somente em 127.0.0.1: a API não tem autenticação.
+name: ignis-multimodal
+
+services:
+  ignis:
+    image: ${IGNIS_IMAGE:-ghcr.io/viniciuskanh/ignis-multimodal}:${IGNIS_TAG:-latest}
+    build:
+      context: .
+      args:
+        IGNIS_VERSION: ${IGNIS_TAG:-latest}
+    init: true
+    restart: unless-stopped
+    user: "${IGNIS_UID:-1000}:${IGNIS_GID:-1000}"
+    ports:
+      - "127.0.0.1:${IGNIS_PORT:-8000}:8000"
+    environment:
+      IGNIS_ALLOWED_ORIGINS: "http://127.0.0.1:${IGNIS_PORT:-8000},http://localhost:${IGNIS_PORT:-8000}"
+      HF_HUB_OFFLINE: ${HF_HUB_OFFLINE:-0}
+    volumes:
+      - ${IGNIS_DATA_DIR:-.}/models:/app/models
+      - ${IGNIS_DATA_DIR:-.}/datasets:/app/datasets
+      - ${IGNIS_DATA_DIR:-.}/training:/app/training
+      - ${IGNIS_DATA_DIR:-.}/outputs:/app/outputs
+      - ${IGNIS_DATA_DIR:-.}/logs:/app/logs
+      - ${IGNIS_DATA_DIR:-.}/configs:/app/configs
+      - ignis-cache:/app/.cache
+    # Memória compartilhada para PyTorch (DataLoader, offloading).
+    shm_size: "2gb"
+    stop_grace_period: 60s
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=8)"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+volumes:
+  # Caches regeneráveis (Hugging Face, latentes do treino, temporários do pytest).
+  ignis-cache:
