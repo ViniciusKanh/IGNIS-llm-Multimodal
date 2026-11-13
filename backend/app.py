@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import sqlite3
 import uuid
 from pathlib import Path
@@ -20,8 +21,20 @@ from backend.common import MODELS, ROOT, inside, read_json, write_json
 from backend.engine import engine
 from backend.jobs import jobs
 
-app = FastAPI(title="IGNIS Multimodal", version="0.1.0")
-app.add_middleware(CORSMiddleware, allow_origins=["http://127.0.0.1:5173", "http://localhost:5173"],
+VERSION = os.environ.get("IGNIS_VERSION") or "0.1.0"
+DEV_ORIGINS = {"http://127.0.0.1:5173", "http://localhost:5173"}
+
+
+def allowed_origins(extra: str | None = None) -> set[str]:
+    """Origens locais aceitas; IGNIS_ALLOWED_ORIGINS acrescenta portas publicadas pelo Docker."""
+    extra = os.environ.get("IGNIS_ALLOWED_ORIGINS", "") if extra is None else extra
+    origins = DEV_ORIGINS | {"http://127.0.0.1:8000", "http://localhost:8000"}
+    return origins | {item.strip().rstrip("/") for item in extra.split(",") if item.strip()}
+
+
+ALLOWED_ORIGINS = allowed_origins()
+app = FastAPI(title="IGNIS Multimodal", version=VERSION)
+app.add_middleware(CORSMiddleware, allow_origins=sorted(DEV_ORIGINS),
                    allow_methods=["GET", "POST"], allow_headers=["Content-Type"])
 app.mount("/outputs", StaticFiles(directory=ROOT / "outputs"), name="outputs")
 
@@ -29,9 +42,7 @@ app.mount("/outputs", StaticFiles(directory=ROOT / "outputs"), name="outputs")
 @app.middleware("http")
 async def local_origin(request: Request, call_next):
     origin = request.headers.get("origin")
-    if request.method != "GET" and origin and origin not in {
-        "http://127.0.0.1:5173", "http://localhost:5173", "http://127.0.0.1:8000", "http://localhost:8000"
-    }:
+    if request.method != "GET" and origin and origin not in ALLOWED_ORIGINS:
         return JSONResponse(status_code=403, content={"detail": "Origem não autorizada para a API local."})
     return await call_next(request)
 
@@ -75,7 +86,8 @@ def upload_image(upload, max_size=20 * 1024 * 1024):
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "application": "IGNIS Multimodal", "inference": "requires_installed_models"}
+    return {"status": "ok", "application": "IGNIS Multimodal", "version": VERSION,
+            "inference": "requires_installed_models"}
 
 
 @app.get("/api/status")

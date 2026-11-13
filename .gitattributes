@@ -1,0 +1,6 @@
+# Scripts executados dentro do container Linux precisam de LF, mesmo em checkouts Windows.
+*.sh text eol=lf
+Dockerfile text eol=lf
+.dockerignore text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf

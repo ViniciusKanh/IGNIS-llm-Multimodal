@@ -14,6 +14,8 @@
   <a href="https://huggingface.co/ViniciusKhan/ignis-image-lora-v1"><img alt="Modelo publicado" src="https://img.shields.io/badge/Modelo-IGNIS%20Image%20LoRA%20v1-17364D?logo=huggingface&logoColor=white" /></a>
   <img alt="Python" src="https://img.shields.io/badge/Python-FastAPI-17364D?logo=python&logoColor=white" />
   <img alt="Interface" src="https://img.shields.io/badge/Interface-React%20%2B%20TypeScript-00A9C7?logo=react&logoColor=white" />
+  <a href="https://github.com/ViniciusKanh/IGNIS-llm-Multimodal/pkgs/container/ignis-multimodal"><img alt="Imagem Docker no GHCR" src="https://img.shields.io/badge/Docker-ghcr.io%2Fviniciuskanh%2Fignis--multimodal-17364D?logo=docker&logoColor=white" /></a>
+  <a href="https://github.com/ViniciusKanh/IGNIS-llm-Multimodal/actions/workflows/docker-publish.yml"><img alt="CI e publicação Docker" src="https://github.com/ViniciusKanh/IGNIS-llm-Multimodal/actions/workflows/docker-publish.yml/badge.svg" /></a>
   <img alt="Estado" src="https://img.shields.io/badge/Estado-Experimental-F3AB39" />
 </p>
 
@@ -21,6 +23,7 @@
   <a href="#demonstrações-reais">Demonstrações</a> ·
   <a href="#o-que-a-plataforma-faz">Recursos</a> ·
   <a href="#executar-localmente">Instalação</a> ·
+  <a href="#docker-e-github-packages">Docker</a> ·
   <a href="#nosso-primeiro-adaptador">Modelo</a> ·
   <a href="#api-local">API</a> ·
   <a href="huggingface/model/README.md">Documentação do modelo</a>
@@ -194,6 +197,135 @@ $env:HF_HOME = Join-Path (Get-Location) '.cache/huggingface'
 
 Esse download disponibiliza o adaptador para inferência; não cria histórico de treino nem substitui relatórios necessários para publicar um novo experimento.
 
+## Docker e GitHub Packages
+
+A plataforma completa — FastAPI, interface React compilada, Ignis Core, visão, geração/edição com Diffusers, adaptadores LoRA, Laboratório e Model Manager — também é distribuída como imagem Docker no GitHub Container Registry:
+
+```text
+ghcr.io/viniciuskanh/ignis-multimodal
+```
+
+| Tag | Conteúdo |
+|---|---|
+| `0.1.0`, `0.1` | Versão SemVer exata e linha menor |
+| `latest` | Última versão estável publicada por tag `v*.*.*` |
+| `edge`, `sha-xxxxxxx` | Builds manuais da `main` (opcionais) |
+
+**A imagem não contém pesos de modelos, adaptadores, datasets, checkpoints nem credenciais.** Esses arquivos ficam em pastas do host montadas como volumes, ou são baixados pelo Model Manager com o mesmo mecanismo da instalação nativa (licença verificada, revisão fixada no manifesto).
+
+| Item | Imagem |
+|---|---|
+| Base | `python:3.13-slim` (Debian bookworm), usuário não-root `ignis` (UID 1000) |
+| PyTorch | 2.11.0 + Torchvision 0.26.0, wheels **CUDA 12.8** (mesma versão validada no Windows) |
+| GPU | Opcional. Requer driver NVIDIA ≥ 570; o runtime CUDA/cuDNN vem nas wheels |
+| Sem GPU | A mesma imagem executa em CPU (FP32), com inferência lenta |
+| Frontend | Compilado em estágio Node separado e servido pela própria API na porta 8000 |
+| Tamanho | Vários GB por causa das bibliotecas CUDA do PyTorch; os modelos são baixados à parte |
+
+### Requisitos
+
+- **Windows:** Docker Desktop com backend WSL2. Para GPU, driver NVIDIA recente; o suporte a GPU no WSL2 já vem no Docker Desktop.
+- **Linux:** Docker Engine com Compose v2. Para GPU, [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
+- Espaço em disco para a imagem e para os modelos (aproximadamente 9 GB para `smolvlm`, `sd15` e `qwen`).
+
+### Executar com Docker Compose
+
+Na pasta do projeto (o `compose.yaml` monta `models/`, `datasets/`, `training/`, `outputs/`, `logs/` e `configs/` dessa pasta; uma instalação Windows existente é reaproveitada sem novo download):
+
+```powershell
+# Sem GPU
+docker compose pull
+docker compose up -d
+
+# Com GPU NVIDIA
+docker compose -f compose.yaml -f compose.gpu.yaml up -d
+
+docker compose logs -f ignis
+```
+
+- **Aplicação:** http://127.0.0.1:8000
+- **API interativa:** http://127.0.0.1:8000/docs
+- **Parar:** `docker compose down` (os dados permanecem nas pastas do host; não use `down -v` se quiser manter o cache).
+
+Para usar outra versão, porta ou pasta de dados, copie `.env.example` para `.env`:
+
+```dotenv
+IGNIS_TAG=0.1.0
+IGNIS_PORT=8000
+IGNIS_DATA_DIR=D:/ignis-data
+```
+
+Em Linux, crie as pastas antes da primeira execução e use o seu usuário (`IGNIS_UID=$(id -u)`, `IGNIS_GID=$(id -g)` no `.env`), para que o container consiga gravar nelas.
+
+### Executar somente com `docker run`
+
+```bash
+docker run -d --name ignis --init --gpus all \
+  -p 127.0.0.1:8000:8000 \
+  -v "$PWD/models:/app/models" -v "$PWD/datasets:/app/datasets" \
+  -v "$PWD/training:/app/training" -v "$PWD/outputs:/app/outputs" \
+  -v "$PWD/logs:/app/logs" -v "$PWD/configs:/app/configs" \
+  -v ignis-cache:/app/.cache \
+  ghcr.io/viniciuskanh/ignis-multimodal:latest
+```
+
+Omita `--gpus all` em máquinas sem GPU. **Sempre publique a porta em `127.0.0.1`.** A API não tem autenticação; `-p 8000:8000` a exporia a toda a rede.
+
+### Modelos e adaptador dentro do container
+
+```powershell
+# Baixa para ./models (mesmo downloader e verificação de licença da instalação nativa)
+docker compose run --rm ignis python scripts/download_models.py --models smolvlm sd15
+
+# Adaptador IGNIS Image LoRA v1 publicado, sem treinar
+docker compose run --rm ignis python -c "from huggingface_hub import snapshot_download; snapshot_download('ViniciusKhan/ignis-image-lora-v1', revision='bdcba88b1d095e95ccbaa6066b48d9d0ca987e59', allow_patterns=['pytorch_lora_weights.safetensors'], local_dir='training/ignis-image-lora-v1/final')"
+```
+
+O Model Manager da interface também inicia downloads. Treinamento e avaliação continuam disponíveis pelo Laboratório e por `docker compose run --rm ignis python scripts/train_lora.py`; nenhum treinamento é iniciado automaticamente. Com `HF_HUB_OFFLINE=1` no `.env`, o container usa somente modelos já instalados.
+
+### Validar a GPU e a inferência
+
+```powershell
+# 1. Detecção e execução de kernel CUDA
+docker compose -f compose.yaml -f compose.gpu.yaml run --rm ignis python scripts/gpu_check.py --require-cuda
+
+# 2. Inferência real com os pesos instalados (gera uma imagem 256 px com SD 1.5 e a descreve com SmolVLM2)
+docker compose -f compose.yaml -f compose.gpu.yaml run --rm ignis python scripts/gpu_check.py --require-cuda --inference sd15 smolvlm
+```
+
+O relatório é salvo em `outputs/validation/` e separa **CUDA detectada**, **kernel CUDA executado** e **inferência executada**. Os runners gratuitos do GitHub Actions não têm GPU: o CI valida o container em CPU, e a inferência na GPU depende desse teste na máquina local.
+
+### Construir a imagem localmente
+
+```powershell
+docker compose build                        # mesma receita usada no GitHub Actions
+docker build --build-arg TORCH_VARIANT=cpu -t ignis-multimodal:cpu .   # variante menor, só CPU
+bash scripts/docker-smoke-test.sh ignis-multimodal:cpu                 # API, frontend, permissões e persistência
+```
+
+### Publicação automatizada
+
+O workflow [`.github/workflows/docker-publish.yml`](.github/workflows/docker-publish.yml) executa, em runners gratuitos `ubuntu-latest`:
+
+1. testes Python sem pesos (contratos e HTTP), build do frontend e validação dos arquivos Compose;
+2. build da imagem CUDA 12.8 e teste de fumaça do container: saúde da API, frontend, OpenAPI, usuário não-root, ausência de pesos e credenciais, bloqueio de origem externa, persistência após reinício e `pytest` dentro do container;
+3. publicação no GHCR somente para tags SemVer ou execução manual com `publish`, autenticada pelo `GITHUB_TOKEN` do próprio workflow.
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+Pull requests e pushes na `main` constroem e testam, mas não publicam. O digest e as tags publicadas aparecem no resumo da execução.
+
+### Segurança e limites do container
+
+- Porta publicada apenas em loopback; origens externas são recusadas pela API. Para outra porta, o Compose ajusta `IGNIS_ALLOWED_ORIGINS`.
+- Código da aplicação somente leitura para o usuário do container; apenas as pastas de dados são graváveis.
+- Bloqueio de GPU, carregamento sequencial, checkpoints, manifestos, hashes e logs funcionam como na instalação nativa, pois usam as mesmas pastas.
+- Não execute a instalação nativa e o container ao mesmo tempo sobre as mesmas pastas: os dois disputariam a GPU e o bloqueio de arquivo não é garantido entre Windows e WSL2.
+- Leitura de pesos por pastas do Windows montadas no WSL2 é mais lenta que no disco do Linux; para uso intenso, defina `IGNIS_DATA_DIR` em um caminho do próprio WSL2.
+
 ## Treinar outro experimento
 
 O pipeline prepara imagens com legendas, cria uma divisão de treino/validação, treina LoRA, salva checkpoints e oferece retomada. **Treinamento é opcional para iniciar a aplicação.**
@@ -233,12 +365,14 @@ O coletor padrão tenta uma fonte museológica e pode recorrer ao DiffusionDB. U
 | `scripts/deploy-space.ps1` | Criar/atualizar somente o Space em ZeroGPU |
 | `scripts/update_model_readme.py` | Atualizar documentação do modelo existente |
 | `scripts/prepare_demo.py` | Recriar os GIFs a partir da gravação original |
+| `scripts/gpu_check.py` | Diagnosticar CUDA e, opcionalmente, executar inferência real |
+| `scripts/docker-smoke-test.sh` | Testar uma imagem Docker: API, frontend, permissões e persistência |
 
 O preparo do release não publica por padrão. Envio ao Hub exige autenticação e opção explícita de publicação. O deploy do Space solicita exclusivamente ZeroGPU e reutiliza um Space existente; não contrata hardware pago. Regras de elegibilidade e limites são definidos pelo Hugging Face.
 
 ## API local
 
-A documentação de contratos, parâmetros e arquivos está disponível em `/docs` quando o backend está iniciado.
+A documentação de contratos, parâmetros e arquivos está disponível em `/docs` quando o backend está iniciado. `/api/health` também informa a versão em execução.
 
 | Método | Endpoint | Operação |
 |---|---|---|
@@ -290,6 +424,8 @@ O gerenciamento serializa operações de GPU, descarrega módulos entre modelos 
 | `huggingface/model/` | Model card, template e logotipo |
 | `huggingface/space/` | Aplicação Gradio e runtime ZeroGPU |
 | `skills/ignis-multimodal/` | Skill de desenvolvimento do projeto |
+| `Dockerfile`, `compose*.yaml`, `docker/` | Imagem multi-stage, Compose CPU/GPU e entrypoint |
+| `.github/workflows/` | CI, build e publicação no GHCR |
 | `tests/` | Contratos e verificações automatizadas |
 | `docs/` | Documentação, evidências e demonstrações |
 | `models/`, `datasets/`, `training/` | Dados locais; ignorados pelo Git |

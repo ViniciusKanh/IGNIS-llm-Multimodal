@@ -135,7 +135,9 @@ def test_api_config_rejects_tiny_run_and_bad_parameters(client):
     assert client.post("/api/config", json={**config, "name": "../escape"}).status_code == 422
 
 
-@pytest.mark.parametrize("relative", ["../elsewhere", "../../models", "C:/Windows/system32"])
+# Caminho absoluto fora do projeto conforme o sistema: no Linux (Docker/CI), "C:/..." é relativo.
+@pytest.mark.parametrize("relative", ["../elsewhere", "../../models",
+                                      "C:/Windows/system32" if os.name == "nt" else "/etc/passwd"])
 def test_path_cannot_escape_project(relative):
     with pytest.raises(ValueError):
         inside(ROOT / "datasets", relative)

@@ -1,0 +1,20 @@
+# Sobreposição opcional para GPU NVIDIA.
+#
+#   docker compose -f compose.yaml -f compose.gpu.yaml up -d
+#
+# Requisitos do host: driver NVIDIA compatível com CUDA 12.8 (>= 570) e
+#   - Windows: Docker Desktop com backend WSL2 (suporte a GPU embutido);
+#   - Linux:   NVIDIA Container Toolkit configurado no Docker.
+# Verificação: docker compose -f compose.yaml -f compose.gpu.yaml run --rm ignis python scripts/gpu_check.py --require-cuda
+services:
+  ignis:
+    environment:
+      NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-all}
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: ${IGNIS_GPU_COUNT:-1}
+              capabilities: [gpu]
